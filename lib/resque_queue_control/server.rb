@@ -47,7 +47,7 @@ module ResqueQueueControl
         end
 
         get /pause\/public\/([a-z]+\.[a-z]+)/ do
-          send_file ResqueQueueControlHelper::Server.public_path(params[:captures].first)
+          send_file ResqueQueueControl::Server.public_path(params[:captures].first)
         end
       end
     end
