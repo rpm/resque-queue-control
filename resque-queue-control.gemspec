@@ -5,12 +5,12 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Arthur Gunawan"]
   gem.email         = ["acgun3@gmail.com"]
   gem.summary       = %q{A resque plugin that allows greater control over queues.}
-  gem.homepage      = "https://github.com/agunawan/resque_queue_control"
+  gem.homepage      = "https://github.com/agunawan/resque-queue-control"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "resque_queue_control"
+  gem.name          = "resque-queue-control"
   gem.require_paths = ["lib"]
   gem.version       = Resque::Plugins::QueueControl::VERSION
 
@@ -22,18 +22,17 @@ Gem::Specification.new do |gem|
   gem.description   = <<desc
 A resque plugin that allows greater control over queues.
 
+Built from the work done in the resque-pause and resque-lonely_job gems.
+
 Example:
 
-  require 'resque/plugins/lonely_job'
+  require 'resque/plugins/queue_control'
 
-  class StrictlySerialJob
+  class QueueControlJob
     extend Resque::Plugins::QueueControl
 
-    @queue = :serial_work
+    def self.perform(*args)
 
-    def self.perform
-      # only one at a time in this block, no parallelism allowed for this
-      # particular queue
     end
   end
 desc
