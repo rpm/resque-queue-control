@@ -1,6 +1,9 @@
 module Resque
   module Plugins
-    module JobsPerQueue
+    module QueueControl
+      include Resque::Helpers
+
+      PAUSE_CHECK_INTERVAL = 10 #seconds to wait when queue is paused
       LOCK_TIMEOUT = 60 * 60 * 24 * 5 # 5 days
 
       def lock_timeout
@@ -29,7 +32,12 @@ module Resque
         Resque.enqueue_to(@queue, self, *args)
       end
 
-      def before_perform_lonely(*args)
+      def before_perform_queue_control(*args)
+        if ResqueQueueControlHelper.paused?(@queue)
+          Kernel.sleep(@pause_check_interval || Resque::Plugins::QueueControl::PAUSE_CHECK_INTERVAL)
+          ResqueQueueControlHelper.check_paused(:queue => @queue, :class => self, :args => args)
+        end
+
         unless can_lock_queue?(*args)
           # can't get the lock, so re-enqueue the task
           reenqueue(*args)
@@ -45,6 +53,7 @@ module Resque
           unlock_queue(*args)
         end
       end
+
     end
   end
 end

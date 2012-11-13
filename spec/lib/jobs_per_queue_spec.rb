@@ -19,9 +19,6 @@ class SerialJobWithCustomRedisKey
 end
 
 describe Resque::Plugins::QueueControl do
-  before do
-    Resque.redis.flushall
-  end
 
   describe ".can_lock_queue?" do
     it 'can lock a queue' do

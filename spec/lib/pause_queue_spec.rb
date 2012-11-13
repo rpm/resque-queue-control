@@ -1,23 +1,16 @@
 require 'spec_helper'
 
 class PauseJob
-  extend Resque::Plugins::PauseQueue
+  extend Resque::Plugins::QueueControl
   @queue = :test
 
   def self.perform(*args)
   end
 end
 
-describe Resque::Plugins::PauseQueue do
-  it "should be compliance with Resqu::Plugin document" do
-    expect { Resque::Plugin.lint(Resque::Plugins::PauseQueue) }.to_not raise_error
-  end
-
-  it "should use at least resque version 1.9.10" do
-    major, minor, patch = Resque::Version.split('.')
-    major.to_i.should == 1
-    minor.to_i.should >= 9
-    patch.to_i.should >= 10 if minor.to_i  == 9
+describe Resque::Plugins::QueueControl do
+  it "should be compliance with Resque::Plugin document" do
+    expect { Resque::Plugin.lint(Resque::Plugins::QueueControl) }.to_not raise_error
   end
 
   it "should execute the job when queue is not paused" do

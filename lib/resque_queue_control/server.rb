@@ -1,10 +1,10 @@
 require 'resque'
 require 'resque/server'
-require File.expand_path(File.join('../','resque_pause_helper'), File.dirname(__FILE__))
+require File.expand_path(File.join('../','resque_queue_control'), File.dirname(__FILE__))
 
 # Extends Resque Web Based UI.
 # Structure has been borrowed from ResqueScheduler.
-module ResquePause
+module ResqueQueueControl
   module Server
     include Resque::Helpers
 
@@ -22,14 +22,14 @@ module ResquePause
 
         helpers do
           def paused?(queue)
-            ResquePauseHelper.paused?(queue)
+            ResqueQueueControlHelper.paused?(queue)
           end
         end
 
         mime_type :json, 'application/json'
 
         get '/pause' do
-          erb File.read(ResquePause::Server.erb_path('pause.erb'))
+          erb File.read(ResqueQueueControl::Server.erb_path('pause.erb'))
         end
 
         post '/pause' do
@@ -37,9 +37,9 @@ module ResquePause
 
           unless params['queue_name'].empty?
             if pause
-              ResquePauseHelper.pause(params['queue_name'])
+              ResqueQueueControlHelper.pause(params['queue_name'])
             else
-              ResquePauseHelper.unpause(params['queue_name'])
+              ResqueQueueControlHelper.unpause(params['queue_name'])
             end
           end
           content_type :json
@@ -47,7 +47,7 @@ module ResquePause
         end
 
         get /pause\/public\/([a-z]+\.[a-z]+)/ do
-          send_file ResquePause::Server.public_path(params[:captures].first)
+          send_file ResqueQueueControlHelper::Server.public_path(params[:captures].first)
         end
       end
     end
@@ -56,7 +56,7 @@ module ResquePause
   end
 end
 
-Resque.extend ResquePause
+Resque.extend ResqueQueueControl
 Resque::Server.class_eval do
-  include ResquePause::Server
+  include ResqueQueueControl::Server
 end

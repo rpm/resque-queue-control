@@ -27,7 +27,7 @@ Example:
   require 'resque/plugins/lonely_job'
 
   class StrictlySerialJob
-    extend Resque::Plugins::LonelyJob
+    extend Resque::Plugins::QueueControl
 
     @queue = :serial_work
 
