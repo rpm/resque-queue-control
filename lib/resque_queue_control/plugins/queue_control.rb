@@ -25,7 +25,7 @@ module Resque
       end
 
       def reenqueue(*args)
-        Resque.redis.lpush("queue:#{@queue}", Resque.encode(:class => self, :args => args))
+        Resque.redis.lpush("queue:#{@queue}", Resque.encode(:class => self.to_s, :args => args))
       end
 
       def wait
