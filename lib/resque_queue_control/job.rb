@@ -9,5 +9,9 @@ module Resque
       end
 
     end
+
+    def args
+      @payload['args'].push(@queue)
+    end
   end
 end

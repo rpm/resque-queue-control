@@ -2,14 +2,12 @@ require 'spec_helper'
 
 class SerialJob
   extend Resque::Plugins::QueueControl
-  @queue = :serial_work
 
   def self.perform(*args); end
 end
 
 class SerialJobWithCustomRedisKey
   extend Resque::Plugins::QueueControl
-  @queue = :serial_work
 
   def redis_key(account_id, *args)
     "lonely_job:#{@queue}:#{account_id}"
@@ -62,7 +60,7 @@ describe Resque::Plugins::QueueControl do
         -> { job.perform }.should raise_error(Exception)
       end
 
-      it 'should place self at the end of the queue if unable to acquire the lock' do
+      it 'should place self at the head of the queue if unable to acquire the lock' do
         job1_payload = %w[account_one job_one]
         job2_payload = %w[account_one job_two]
         Resque::Job.create(:serial_work, 'SerialJob', job1_payload)
@@ -76,7 +74,7 @@ describe Resque::Plugins::QueueControl do
         job1.perform.should be_false
 
         first_queue_element = Resque.reserve(:serial_work)
-        first_queue_element.payload["args"].should == [job2_payload]
+        first_queue_element.payload["args"].should == [job1_payload]
       end
     end
 
@@ -110,7 +108,7 @@ describe Resque::Plugins::QueueControl do
         -> { job.perform }.should raise_error(Exception)
       end
 
-      it 'should place self at the end of the queue if unable to acquire the lock' do
+      it 'should place self at the head of the queue if unable to acquire the lock' do
         job1_payload = %w[account_one job_one]
         job2_payload = %w[account_one job_two]
         Resque::Job.create(:serial_work, 'SerialJobWithCustomRedisKey', job1_payload)
@@ -124,7 +122,7 @@ describe Resque::Plugins::QueueControl do
         job1.perform.should be_false
 
         first_queue_element = Resque.reserve(:serial_work)
-        first_queue_element.payload["args"].should == [job2_payload]
+        first_queue_element.payload["args"].should == [job1_payload]
       end
     end
   end

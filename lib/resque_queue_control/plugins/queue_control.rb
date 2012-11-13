@@ -3,7 +3,7 @@ module Resque
     module QueueControl
       include Resque::Helpers
 
-      PAUSE_CHECK_INTERVAL = 10 #seconds to wait when queue is paused
+      PAUSE_CHECK_INTERVAL = 10 # seconds to wait when queue is paused or busy
       LOCK_TIMEOUT = 60 * 60 * 24 * 5 # 5 days
 
       def lock_timeout
@@ -24,24 +24,26 @@ module Resque
         Resque.redis.del(redis_key(*args))
       end
 
-      # Unfortunately, there's not a Resque interface for lpush so we have to
-      # role our own.  This is based on Resque.push but we don't need to
-      # call Resque.watch_queue as the queue should already exist if we're
-      # unable to get the lock.
       def reenqueue(*args)
-        Resque.enqueue_to(@queue, self, *args)
+        Resque.redis.lpush("queue:#{@queue}", Resque.encode(:class => self, :args => args))
+      end
+
+      def wait
+        Kernel.sleep(@pause_check_interval || Resque::Plugins::QueueControl::PAUSE_CHECK_INTERVAL)
       end
 
       def before_perform_queue_control(*args)
+        @queue = args.pop
+
         if ResqueQueueControlHelper.paused?(@queue)
-          Kernel.sleep(@pause_check_interval || Resque::Plugins::QueueControl::PAUSE_CHECK_INTERVAL)
-          ResqueQueueControlHelper.check_paused(:queue => @queue, :class => self, :args => args)
+          wait
+          reenqueue(*args)
+          raise Resque::Job::DontPerform.new "Queue #{@queue} is paused!"
         end
 
         unless can_lock_queue?(*args)
-          # can't get the lock, so re-enqueue the task
+          wait
           reenqueue(*args)
-          # and don't perform
           raise Resque::Job::DontPerform.new "Queue #{@queue} already has a job running!"
         end
       end
