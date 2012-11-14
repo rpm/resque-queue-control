@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "resque-queue-control"
   gem.require_paths = ["lib"]
-  gem.version       = Resque::Plugins::QueueControl::VERSION
+  gem.version       = Resque::QueueControl::VERSION
 
   gem.add_dependency 'resque', '~> 1.20'
   gem.add_development_dependency 'mock_redis'
