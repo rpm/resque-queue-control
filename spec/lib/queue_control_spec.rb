@@ -16,7 +16,6 @@ class QueueControlWithCustomRedisKey
   def self.perform(account_id, *args); end
 end
 
-
 describe Resque::Plugins::QueueControl do
   context "pausing jobs" do
     
@@ -135,6 +134,21 @@ describe Resque::Plugins::QueueControl do
 
         first_queue_element = Resque.reserve(:test)
         first_queue_element.payload["args"].should == [job1_payload]
+      end
+
+      it "should not take a job off the queue if the queue is locked" do
+        job1_payload = %w[account_one job_one]
+        job2_payload = %w[account_one job_two]
+        Resque::Job.create(:test, 'QueueControlJob', job1_payload)
+        Resque::Job.create(:test, 'QueueControlJob', job2_payload)
+
+        QueueControlJob.should_receive(:unlock_queue).and_return(false)
+
+        job1 = Resque.reserve(:test)
+        job1.perform
+
+        job2 = Resque.reserve(:test)
+        job2.should be_nil
       end
     end
 

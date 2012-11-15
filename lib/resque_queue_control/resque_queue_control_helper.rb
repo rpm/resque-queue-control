@@ -11,5 +11,9 @@ module ResqueQueueControlHelper
     def unpause(queue)
       Resque.redis.del "pause:queue:#{queue}"
     end
+
+    def locked?(queue)
+      Resque.redis.exists "lonely_job:#{queue}"
+    end
   end
 end
