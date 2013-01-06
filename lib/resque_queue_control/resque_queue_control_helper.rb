@@ -15,5 +15,9 @@ module ResqueQueueControlHelper
     def locked?(queue)
       Resque.redis.exists "lonely_job:#{queue}"
     end
+
+    def unlock(queue)
+      Resque.redis.del "lonely_job:#{queue}"
+    end
   end
 end
