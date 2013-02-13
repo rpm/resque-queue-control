@@ -35,7 +35,7 @@ module Resque
       def before_perform_queue_control(*args)
         @queue = args.pop
 
-        if ResqueQueueControlHelper.paused?(@queue)
+        if ResqueQueueControlHelper.paused?(@queue) || ResqueQueueControlHelper.super_paused?(@queue)
           wait
           reenqueue(*args)
           raise Resque::Job::DontPerform.new "Queue #{@queue} is paused!"
