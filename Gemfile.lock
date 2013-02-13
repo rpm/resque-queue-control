@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    resque-queue-control (0.0.4)
+    resque-queue-control (0.0.5)
       resque (~> 1.20)
 
 GEM
