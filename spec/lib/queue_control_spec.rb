@@ -40,12 +40,31 @@ describe Resque::Plugins::QueueControl do
     
       Resque.size('test').should == 1
     end
+
+    it "should not execute the job when queue is super paused" do
+      Resque.enqueue_to(:test, QueueControlJob)
+      Resque.size('test').should == 1
+
+      job = Resque.reserve('test')
+      ResqueQueueControlHelper.super_pause('test')
+      job.perform
+
+      Resque.size('test').should == 1
+    end
     
     it "should not reserve the job when queue is paused" do
       ResqueQueueControlHelper.pause('test')
       Resque.enqueue_to(:test, QueueControlJob)
       QueueControlJob.should_not_receive(:perform)
     
+      Resque.reserve('test').should be_nil
+    end
+
+    it "should not reserve the job when queue is super paused" do
+      ResqueQueueControlHelper.super_pause('test')
+      Resque.enqueue_to(:test, QueueControlJob)
+      QueueControlJob.should_not_receive(:perform)
+
       Resque.reserve('test').should be_nil
     end
     
@@ -62,6 +81,20 @@ describe Resque::Plugins::QueueControl do
       remaining_jobs = Resque.redis.lrange('queue:test', 0, 2)
       jobs.should == remaining_jobs
     end
+
+    it "should not change queued jobs when queue is super paused" do
+      Resque.enqueue_to(:test, QueueControlJob, 1)
+      Resque.enqueue_to(:test, QueueControlJob, 2)
+      Resque.enqueue_to(:test, QueueControlJob, 3)
+      jobs = Resque.redis.lrange('queue:test', 0, 2)
+
+      job = Resque.reserve('test')
+      ResqueQueueControlHelper.super_pause('test')
+      job.perform
+
+      remaining_jobs = Resque.redis.lrange('queue:test', 0, 2)
+      jobs.should == remaining_jobs
+    end
     
     it "should back to execute the job when queue is unpaused" do
       Resque.enqueue(QueueControlJob)
@@ -71,6 +104,19 @@ describe Resque::Plugins::QueueControl do
       job.perform
       Resque.size('test').should == 1
     
+      ResqueQueueControlHelper.unpause('test')
+      Resque.reserve('test').perform
+      Resque.size('test').should == 0
+    end
+
+    it "should back to execute the job when queue is super_unpaused" do
+      Resque.enqueue(QueueControlJob)
+
+      job = Resque.reserve('test')
+      ResqueQueueControlHelper.pause('test')
+      job.perform
+      Resque.size('test').should == 1
+
       ResqueQueueControlHelper.unpause('test')
       Resque.reserve('test').perform
       Resque.size('test').should == 0
