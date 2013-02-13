@@ -4,7 +4,7 @@ module Resque
       alias_method :origin_before_pause_reserve, :reserve
 
       def reserve(queue)
-        return nil if ResqueQueueControlHelper.paused?(queue) || ResqueQueueControlHelper.locked?(queue)
+        return nil unless ResqueQueueControlHelper.can_reserve?(queue)
         origin_before_pause_reserve(queue)
       end
 
