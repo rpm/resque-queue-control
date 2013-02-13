@@ -6,12 +6,14 @@
   <tr>
     <th>Name</th>
     <th>Paused</th>
+    <th>Super Paused</th>
     <th>Jobs</th>
   </tr>
   <% for queue in resque.queues.sort_by { |q| q.to_s } %>
   <tr>
     <td class='queue'><%= queue %></td>
-    <td class='status'><input class="pause" type="checkbox" value="<%= queue%>" <%= "checked" if paused?(queue) %>></input></td>
+    <td class='status'><input class="pause" name="pause" type="checkbox" value="<%= queue%>" <%= "checked" if paused?(queue) %>></input></td>
+    <td class='status'><input class="pause" name="super_pause" type="checkbox" value="<%= queue%>" <%= "checked" if super_paused?(queue) %>></input></td>
     <td class='size'><%= resque.size queue %></td>
   </tr>
   <% end %>

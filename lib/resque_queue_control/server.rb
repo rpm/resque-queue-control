@@ -24,6 +24,9 @@ module ResqueQueueControl
           def paused?(queue)
             ResqueQueueControlHelper.paused?(queue)
           end
+          def super_paused?(queue)
+            ResqueQueueControlHelper.super_paused?(queue)
+          end
         end
 
         mime_type :json, 'application/json'
@@ -33,17 +36,22 @@ module ResqueQueueControl
         end
 
         post '/pause' do
-          pause = params['pause'] == "true"
+          action = params['action']
 
           unless params['queue_name'].empty?
-            if pause
-              ResqueQueueControlHelper.pause(params['queue_name'])
-            else
-              ResqueQueueControlHelper.unpause(params['queue_name'])
+            case action.to_s.downcase
+              when 'pause'
+                ResqueQueueControlHelper.pause(params['queue_name'])
+              when 'unpause'
+                ResqueQueueControlHelper.unpause(params['queue_name'])
+              when 'super_pause'
+                ResqueQueueControlHelper.super_pause(params['queue_name'])
+              when 'super_unpause'
+                ResqueQueueControlHelper.super_unpause(params['queue_name'])
             end
           end
           content_type :json
-          encode(:queue_name => params['queue_name'], :paused => pause)
+          encode(:queue_name => params['queue_name'], :action => action)
         end
 
         get /pause\/public\/([a-z]+\.[a-z]+)/ do
